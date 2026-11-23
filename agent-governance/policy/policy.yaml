@@ -1,0 +1,94 @@
+# Machine-readable governance policy.
+#
+# Parsed by scripts/policy_check.py using a RESTRICTED YAML subset: nested
+# mappings via 2-space indentation, block lists of scalars or flat
+# mappings, plain scalars, comments. NO anchors, NO flow collections, NO
+# multiline strings, NO tabs. Changing the subset itself is a guardrail
+# change (human-approved T3). This file must be read from the base/merge
+# commit by classify_diff.py, never from the diff's own working tree — a
+# diff that edits this file to loosen its own rules must not be judged by
+# the loosened copy.
+
+version: 0.1.0
+
+gates:
+  - id: G0
+    name: hygiene
+  - id: G1
+    name: correctness
+  - id: G2
+    name: security
+  - id: G3
+    name: maintainability
+  - id: G4
+    name: documentation
+  - id: G5
+    name: reproducibility
+  - id: G6
+    name: auditability
+  - id: G7
+    name: independent-verifiability
+  - id: G8
+    name: diff-faithfulness
+
+risk_tiers:
+  - id: T0
+    name: documentation-only
+    gates:
+      - G0
+      - G4
+      - G6
+      - G7
+      - G8
+  - id: T1
+    name: internal-behavior
+    gates:
+      - G0
+      - G1
+      - G4
+      - G6
+      - G7
+      - G8
+  - id: T2
+    name: public-facing
+    gates:
+      - G0
+      - G1
+      - G2
+      - G3
+      - G4
+      - G5
+      - G6
+      - G7
+      - G8
+  - id: T3
+    name: boundary-crossing
+    requires_human_approval: true
+    gates:
+      - G0
+      - G1
+      - G2
+      - G3
+      - G4
+      - G5
+      - G6
+      - G7
+      - G8
+
+human_boundaries:
+  require_approval_paths:
+    - policy/**
+    - .github/**
+    - scripts/**
+    - AGENTS.md
+    - POLICY.md
+    - SECURITY.md
+    - .github/CODEOWNERS
+  hard_rules:
+    - "Never change the guardrails in the same change as the code being governed."
+    - "Never push to protected branches or rewrite published history, including the audit log."
+    - "Never read, copy, or exfiltrate real credentials."
+    - "Never perform irreversible operations on real data or external systems."
+    - "Never weaken, disable, or skip a verification check to make a change pass."
+    - "Never record evidence for a check that was not actually run."
+    - "Never satisfy an approval requirement with a self-written approver field; approval requires an external, CI-resolved reference."

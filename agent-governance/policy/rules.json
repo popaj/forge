@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "path_rules": [
+    {"pattern": "^(src|lib|app)/.*(auth|authorization|crypto|security).*", "dimension": "security_boundary", "level": "T3"},
+    {"pattern": "^(auth|security|crypto)/", "dimension": "security_boundary", "level": "T3"},
+    {"pattern": "^(migrations?|db/migrations?)/", "dimension": "persistence", "level": "T2"},
+    {"pattern": "^(\\.github/workflows|deploy|infra|terraform|k8s)/", "dimension": "production", "level": "T3"},
+    {"pattern": "(^|/)(package-lock.json|pnpm-lock.yaml|yarn.lock|poetry.lock|uv.lock|Cargo.lock|go.sum|requirements.*\\.txt)$", "dimension": "dependency", "level": "T2"},
+    {"pattern": "^(api|openapi|proto|schemas?)/", "dimension": "public_interface", "level": "T2"},
+    {"pattern": "(^|/)(\\.env|.*secret.*|.*credential.*|.*private.*key.*)", "dimension": "sensitive_data", "level": "T3"}
+  ],
+  "content_rules": [
+    {"pattern": "(?i)\\b(password|passwd|api[_-]?key|secret[_-]?key|access[_-]?token|private[_-]?key|bearer\\s+token)\\b\\s*[:=]", "dimension": "sensitive_data", "level": "T3"},
+    {"pattern": "(?i)\\b(authenticate|authorize|verify_password|check_permission|is_admin|hash_password|jwt\\.(encode|decode)|oauth|session\\[.?token.?\\])\\b", "dimension": "security_boundary", "level": "T3"},
+    {"pattern": "(?i)\\b(encrypt|decrypt|sign_message|verify_signature|generate_key|cipher|hmac)\\b", "dimension": "security_boundary", "level": "T3"},
+    {"pattern": "(?i)\\b(DROP\\s+TABLE|DELETE\\s+FROM|TRUNCATE|ALTER\\s+TABLE.*DROP)\\b", "dimension": "persistence", "level": "T2"},
+    {"pattern": "(?i)\\b(subprocess\\.(run|call|Popen)|os\\.system|eval\\(|exec\\()\\b", "dimension": "production", "level": "T2"}
+  ],
+  "protected_paths": [
+    ".github/",
+    "policy/",
+    "scripts/classify_diff.py",
+    "scripts/policy_check.py",
+    "scripts/validate.sh",
+    "AGENTS.md",
+    "POLICY.md",
+    "SECURITY.md"
+  ],
+  "protected_path_level": "T3",
+  "human_gate_levels": ["T3"],
+  "note": "Rules must always be read from the base/merge commit by classify_diff.py, never from the working tree of the diff under judgment. content_rules exist because path_rules alone can be evaded by moving a file to an unmatched path while keeping its content; classify_diff.py runs content_rules against the added/modified lines of every touched file regardless of its path."
+}

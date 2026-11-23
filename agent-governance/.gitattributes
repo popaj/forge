@@ -1,0 +1,9 @@
+# Reproducibility: force LF line endings for all text files so the
+# repository content is byte-identical across platforms.
+* text=auto eol=lf
+
+# Explicit binaries
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary

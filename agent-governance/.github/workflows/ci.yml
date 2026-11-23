@@ -1,0 +1,61 @@
+name: verify
+
+# The pipeline is DATA: a plain file anyone can read. Unlike a prior design
+# this framework was compared against, the diff-derived classifier below is
+# actually invoked here, not just present in scripts/ and undocumented into
+# CI.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout (full history — classify_diff.py needs the base commit)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify governance layer
+        run: bash scripts/validate.sh
+
+      - name: Governance regression tests
+        run: python3 -m unittest discover -s tests -v
+
+      - name: Independent diff classification (G8)
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          new_manifest="$(git diff --name-only --diff-filter=A "$BASE_SHA" "$HEAD_SHA" -- manifests/ | grep -v -e README.md -e TEMPLATE.md | head -1 || true)"
+          if [ -z "$new_manifest" ]; then
+            echo "no new manifest in this PR; a change without a manifest should not merge (see CONTRIBUTING.md)"
+            exit 1
+          fi
+          python3 scripts/classify_diff.py --base "$BASE_SHA" --head "$HEAD_SHA" --manifest "$new_manifest"
+
+      # External approval resolution requires organization-specific
+      # credentials this workflow does not assume; see
+      # docs/governance-setup.md step 4 and scripts/verify_approval_external.py.
+      # Uncomment and configure once wired:
+      # - name: Resolve external approval for T3 changes
+      #   if: github.event_name == 'pull_request'
+      #   run: python3 scripts/verify_approval_external.py "$new_manifest"
+
+      - name: Show validation report on failure
+        if: failure()
+        run: cat audit/last-validation.json 2>/dev/null || true

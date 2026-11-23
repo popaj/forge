@@ -1,0 +1,17 @@
+# CODEOWNERS — guardrails are human-owned.
+#
+# Replace the placeholder handles (@owner, @security) with real accounts
+# before relying on this file (see docs/governance-setup.md). Until then the
+# entries are inert placeholders.
+#
+# Lines matched by the path trigger list in policy/policy.yaml: any change
+# touching these paths is tier T3 and needs a human approver on top of the
+# review this file requests.
+
+/policy/              @owner @security
+/.github/             @owner
+/scripts/             @owner
+/AGENTS.md            @owner
+/POLICY.md            @owner
+/SECURITY.md          @owner
+/.github/CODEOWNERS   @owner
